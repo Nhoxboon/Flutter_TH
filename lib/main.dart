@@ -1,26 +1,22 @@
 import 'package:flutter/material.dart';
-// import 'screens/example_buttons.dart';
-// import 'screens/my_home_page.dart';
-// import 'screens/product_list_screen.dart';
-// import 'screens/custom_rich_text_screen.dart';
-// import 'screens/app_buttons_screen.dart';
-// import 'screens/flutter_course_screen.dart';
-// import 'screens/gradient_buttons_screen.dart';
-// import 'screens/button_showcase_screen.dart';
-import 'screens/workout_screen.dart';
+import 'screens/home_screen.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MainApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class MainApp extends StatelessWidget {
+  const MainApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: "Flutter Course",
-      home: const WorkoutScreen(),
+      title: 'BTTH02 - Forms & Data Storage',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
+      ),
+      home: const HomeScreen(),
       debugShowCheckedModeBanner: false,
     );
   }
