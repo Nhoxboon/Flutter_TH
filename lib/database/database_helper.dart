@@ -19,9 +19,30 @@ class DatabaseHelper {
     String path = join(await getDatabasesPath(), 'btth02.db');
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      // Add orders table for existing databases
+      await db.execute('''
+        CREATE TABLE orders (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          customerName TEXT NOT NULL,
+          phoneNumber TEXT NOT NULL,
+          deliveryAddress TEXT NOT NULL,
+          notes TEXT NOT NULL,
+          deliveryDate INTEGER NOT NULL,
+          paymentMethod TEXT NOT NULL,
+          products TEXT NOT NULL,
+          orderId TEXT NOT NULL UNIQUE,
+          createdAt INTEGER NOT NULL
+        )
+      ''');
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -77,6 +98,22 @@ class DatabaseHelper {
         FOREIGN KEY (productId) REFERENCES products (id) ON DELETE CASCADE
       )
     ''');
+
+    // Orders table
+    await db.execute('''
+      CREATE TABLE orders (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        customerName TEXT NOT NULL,
+        phoneNumber TEXT NOT NULL,
+        deliveryAddress TEXT NOT NULL,
+        notes TEXT NOT NULL,
+        deliveryDate INTEGER NOT NULL,
+        paymentMethod TEXT NOT NULL,
+        products TEXT NOT NULL,
+        orderId TEXT NOT NULL UNIQUE,
+        createdAt INTEGER NOT NULL
+      )
+    ''');
   }
 
   // User operations
@@ -121,11 +158,7 @@ class DatabaseHelper {
 
   Future<int> deleteAddress(int id) async {
     final db = await database;
-    return await db.delete(
-      'addresses',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    return await db.delete('addresses', where: 'id = ?', whereArgs: [id]);
   }
 
   // Product operations
@@ -152,17 +185,9 @@ class DatabaseHelper {
   Future<int> deleteProduct(int id) async {
     final db = await database;
     // Delete associated images first
-    await db.delete(
-      'product_images',
-      where: 'productId = ?',
-      whereArgs: [id],
-    );
+    await db.delete('product_images', where: 'productId = ?', whereArgs: [id]);
     // Delete product
-    return await db.delete(
-      'products',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    return await db.delete('products', where: 'id = ?', whereArgs: [id]);
   }
 
   // Product image operations
@@ -180,6 +205,80 @@ class DatabaseHelper {
       'product_images',
       where: 'productId = ?',
       whereArgs: [productId],
+    );
+  }
+
+  // Order operations
+  Future<int> insertOrder(Map<String, dynamic> order) async {
+    final db = await database;
+    return await db.insert('orders', order);
+  }
+
+  Future<List<Map<String, dynamic>>> getAllOrders() async {
+    final db = await database;
+    return await db.query('orders', orderBy: 'createdAt DESC');
+  }
+
+  Future<Map<String, dynamic>?> getOrderById(int id) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'orders',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    if (maps.isNotEmpty) {
+      return maps.first;
+    }
+    return null;
+  }
+
+  Future<int> updateOrder(int id, Map<String, dynamic> order) async {
+    final db = await database;
+    return await db.update('orders', order, where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<int> deleteOrder(int id) async {
+    final db = await database;
+    return await db.delete('orders', where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<List<Map<String, dynamic>>> searchOrdersByCustomer(
+    String customerName,
+  ) async {
+    final db = await database;
+    return await db.query(
+      'orders',
+      where: 'customerName LIKE ?',
+      whereArgs: ['%$customerName%'],
+      orderBy: 'createdAt DESC',
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getOrdersByDateRange(
+    DateTime startDate,
+    DateTime endDate,
+  ) async {
+    final db = await database;
+    return await db.query(
+      'orders',
+      where: 'deliveryDate BETWEEN ? AND ?',
+      whereArgs: [
+        startDate.millisecondsSinceEpoch,
+        endDate.millisecondsSinceEpoch,
+      ],
+      orderBy: 'deliveryDate ASC',
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> getOrdersByPaymentMethod(
+    String paymentMethod,
+  ) async {
+    final db = await database;
+    return await db.query(
+      'orders',
+      where: 'paymentMethod = ?',
+      whereArgs: [paymentMethod],
+      orderBy: 'createdAt DESC',
     );
   }
 
