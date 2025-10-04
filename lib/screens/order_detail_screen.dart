@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/order.dart';
-import '../database/database_helper.dart';
+import '../utils/shared_preferences_helper.dart';
 import 'create_order_screen.dart';
 
 class OrderDetailScreen extends StatefulWidget {
@@ -14,7 +14,7 @@ class OrderDetailScreen extends StatefulWidget {
 }
 
 class _OrderDetailScreenState extends State<OrderDetailScreen> {
-  final DatabaseHelper _dbHelper = DatabaseHelper();
+  SharedPreferencesHelper? _prefsHelper;
   late Order _currentOrder;
 
   @override
@@ -459,10 +459,15 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     if (result == true && mounted) {
       // Reload order data
       try {
-        final updatedOrderMap = await _dbHelper.getOrderById(_currentOrder.id!);
-        if (updatedOrderMap != null) {
+        if (_prefsHelper == null) {
+          _prefsHelper = await SharedPreferencesHelper.getInstance();
+        }
+        final updatedOrder = await _prefsHelper!.getOrderById(
+          _currentOrder.id!,
+        );
+        if (updatedOrder != null) {
           setState(() {
-            _currentOrder = Order.fromMap(updatedOrderMap);
+            _currentOrder = updatedOrder;
           });
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -517,7 +522,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   Future<void> _deleteOrder() async {
     try {
-      await _dbHelper.deleteOrder(_currentOrder.id!);
+      if (_prefsHelper == null) {
+        _prefsHelper = await SharedPreferencesHelper.getInstance();
+      }
+      await _prefsHelper!.deleteOrder(_currentOrder.id!);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

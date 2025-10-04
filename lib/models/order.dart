@@ -23,7 +23,7 @@ class Order {
     required this.createdAt,
   });
 
-  // Convert Order to Map for database storage
+  // Convert Order to Map for JSON storage
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -33,13 +33,13 @@ class Order {
       'notes': notes,
       'deliveryDate': deliveryDate.millisecondsSinceEpoch,
       'paymentMethod': paymentMethod,
-      'products': products.join(','), // Store as comma-separated string
+      'products': products, // Store as List<String> for JSON
       'orderId': orderId,
       'createdAt': createdAt.millisecondsSinceEpoch,
     };
   }
 
-  // Create Order from Map (from database)
+  // Create Order from Map (from JSON)
   factory Order.fromMap(Map<String, dynamic> map) {
     return Order(
       id: map['id'],
@@ -47,12 +47,32 @@ class Order {
       phoneNumber: map['phoneNumber'] ?? '',
       deliveryAddress: map['deliveryAddress'] ?? '',
       notes: map['notes'] ?? '',
-      deliveryDate: DateTime.fromMillisecondsSinceEpoch(map['deliveryDate']),
+      deliveryDate: DateTime.fromMillisecondsSinceEpoch(
+        map['deliveryDate'] ?? DateTime.now().millisecondsSinceEpoch,
+      ),
       paymentMethod: map['paymentMethod'] ?? '',
-      products: (map['products'] as String).split(','),
+      products: _parseProducts(map['products']),
       orderId: map['orderId'] ?? '',
-      createdAt: DateTime.fromMillisecondsSinceEpoch(map['createdAt']),
+      createdAt: DateTime.fromMillisecondsSinceEpoch(
+        map['createdAt'] ?? DateTime.now().millisecondsSinceEpoch,
+      ),
     );
+  }
+
+  // Helper method to parse products from different formats
+  static List<String> _parseProducts(dynamic productsData) {
+    if (productsData == null) return [];
+
+    if (productsData is List) {
+      return productsData.cast<String>();
+    }
+
+    if (productsData is String) {
+      // Handle comma-separated string (for backward compatibility)
+      return productsData.split(',').where((p) => p.isNotEmpty).toList();
+    }
+
+    return [];
   }
 
   // Copy with method for updates

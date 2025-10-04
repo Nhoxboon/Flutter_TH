@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/order.dart';
-import '../database/database_helper.dart';
+import '../utils/shared_preferences_helper.dart';
 import 'create_order_screen.dart';
 import 'order_detail_screen.dart';
 
@@ -13,7 +13,7 @@ class OrderListScreen extends StatefulWidget {
 }
 
 class _OrderListScreenState extends State<OrderListScreen> {
-  final DatabaseHelper _dbHelper = DatabaseHelper();
+  SharedPreferencesHelper? _prefsHelper;
   final TextEditingController _searchController = TextEditingController();
   List<Order> _orders = [];
   List<Order> _filteredOrders = [];
@@ -35,11 +35,11 @@ class _OrderListScreenState extends State<OrderListScreen> {
     });
 
     try {
-      final List<Map<String, dynamic>> orderMaps = await _dbHelper
-          .getAllOrders();
-      final List<Order> orders = orderMaps
-          .map((map) => Order.fromMap(map))
-          .toList();
+      if (_prefsHelper == null) {
+        _prefsHelper = await SharedPreferencesHelper.getInstance();
+      }
+
+      final List<Order> orders = await _prefsHelper!.getAllOrders();
 
       setState(() {
         _orders = orders;
@@ -551,7 +551,10 @@ class _OrderListScreenState extends State<OrderListScreen> {
 
   Future<void> _deleteOrder(Order order) async {
     try {
-      await _dbHelper.deleteOrder(order.id!);
+      if (_prefsHelper == null) {
+        _prefsHelper = await SharedPreferencesHelper.getInstance();
+      }
+      await _prefsHelper!.deleteOrder(order.id!);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

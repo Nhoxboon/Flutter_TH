@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/order.dart';
-import '../database/database_helper.dart';
+import '../utils/shared_preferences_helper.dart';
 
 class CreateOrderScreen extends StatefulWidget {
   final Order? existingOrder; // For editing existing orders
@@ -14,7 +14,7 @@ class CreateOrderScreen extends StatefulWidget {
 
 class _CreateOrderScreenState extends State<CreateOrderScreen> {
   final _formKey = GlobalKey<FormState>();
-  final DatabaseHelper _dbHelper = DatabaseHelper();
+  SharedPreferencesHelper? _prefsHelper;
 
   // Controllers
   final _customerNameController = TextEditingController();
@@ -42,9 +42,14 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
   @override
   void initState() {
     super.initState();
+    _initializeHelper();
     if (widget.existingOrder != null) {
       _populateExistingData();
     }
+  }
+
+  Future<void> _initializeHelper() async {
+    _prefsHelper = await SharedPreferencesHelper.getInstance();
   }
 
   void _populateExistingData() {
@@ -154,7 +159,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
         if (value == null || value.isEmpty) {
           return 'Vui lòng nhập số điện thoại';
         }
-        if (value.length != 10 || !RegExp(r'^[0-9]+\$').hasMatch(value)) {
+        if (value.length != 10 || !RegExp(r'^[0-9]+$').hasMatch(value)) {
           return 'Số điện thoại phải có đúng 10 chữ số';
         }
         return null;
@@ -384,7 +389,10 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
           orderId: Order.generateOrderId(),
           createdAt: DateTime.now(),
         );
-        await _dbHelper.insertOrder(order.toMap());
+        if (_prefsHelper == null) {
+          _prefsHelper = await SharedPreferencesHelper.getInstance();
+        }
+        await _prefsHelper!.insertOrder(order);
       } else {
         // Update existing order
         order = widget.existingOrder!.copyWith(
@@ -396,7 +404,10 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
           paymentMethod: _paymentMethod,
           products: _selectedProducts,
         );
-        await _dbHelper.updateOrder(order.id!, order.toMap());
+        if (_prefsHelper == null) {
+          _prefsHelper = await SharedPreferencesHelper.getInstance();
+        }
+        await _prefsHelper!.updateOrder(order.id!, order);
       }
 
       if (mounted) {
