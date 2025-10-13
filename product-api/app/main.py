@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.database import engine, Base
 from app.api.products import router as products_router
+from app.api.categories import router as categories_router
 
 # Create tables
 Base.metadata.create_all(bind=engine)
@@ -27,6 +28,12 @@ app.include_router(
     products_router,
     prefix=f"{settings.api_v1_str}/products",
     tags=["products"]
+)
+
+app.include_router(
+    categories_router,
+    prefix=f"{settings.api_v1_str}/categories",
+    tags=["categories"]
 )
 
 @app.get("/")

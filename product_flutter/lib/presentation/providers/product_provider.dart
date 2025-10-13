@@ -43,6 +43,7 @@ class ProductProvider with ChangeNotifier {
       final newProducts = await _repository.getProducts(
         skip: _currentPage * _pageSize,
         limit: _pageSize,
+        includeCategory: true,
       );
 
       if (newProducts.length < _pageSize) {
@@ -77,12 +78,14 @@ class ProductProvider with ChangeNotifier {
     required String name,
     String? description,
     required double price,
+    required int categoryId,
   }) async {
     try {
       final request = CreateProductRequest(
         name: name,
         description: description,
         price: price,
+        categoryId: categoryId,
       );
 
       final newProduct = await _repository.createProduct(request);
@@ -101,22 +104,24 @@ class ProductProvider with ChangeNotifier {
     String? name,
     String? description,
     double? price,
+    int? categoryId,
   }) async {
     try {
       final request = UpdateProductRequest(
         name: name,
         description: description,
         price: price,
+        categoryId: categoryId,
       );
 
       final updatedProduct = await _repository.updateProduct(id, request);
       final index = _products.indexWhere((p) => p.id == id);
-      
+
       if (index != -1) {
         _products[index] = updatedProduct;
         notifyListeners();
       }
-      
+
       return true;
     } catch (e) {
       _setError(e.toString());
@@ -140,10 +145,11 @@ class ProductProvider with ChangeNotifier {
   // Search products
   List<Product> searchProducts(String query) {
     if (query.isEmpty) return _products;
-    
+
     return _products.where((product) {
       return product.name.toLowerCase().contains(query.toLowerCase()) ||
-          (product.description?.toLowerCase().contains(query.toLowerCase()) ?? false);
+          (product.description?.toLowerCase().contains(query.toLowerCase()) ??
+              false);
     }).toList();
   }
 

@@ -1,37 +1,23 @@
-import 'category_model.dart';
-
-class Product {
+class Category {
   final int? id;
   final String name;
   final String? description;
-  final double price;
-  final int categoryId;
-  final Category? category;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
-  const Product({
+  const Category({
     this.id,
     required this.name,
     this.description,
-    required this.price,
-    required this.categoryId,
-    this.category,
     this.createdAt,
     this.updatedAt,
   });
 
-  factory Product.fromJson(Map<String, dynamic> json) {
-    return Product(
+  factory Category.fromJson(Map<String, dynamic> json) {
+    return Category(
       id: json['id'] is int ? json['id'] : int.tryParse(json['id'].toString()),
       name: json['name']?.toString() ?? '',
       description: json['description']?.toString(),
-      price: _parseDouble(json['price']),
-      categoryId: json['category_id'] is int
-          ? json['category_id']
-          : int.tryParse(json['category_id'].toString()) ?? 0,
-      category:
-          json['category'] != null ? Category.fromJson(json['category']) : null,
       createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'].toString())
           : null,
@@ -41,90 +27,86 @@ class Product {
     );
   }
 
-  static double _parseDouble(dynamic value) {
-    if (value == null) return 0.0;
-    if (value is double) return value;
-    if (value is int) return value.toDouble();
-    if (value is String) {
-      return double.tryParse(value) ?? 0.0;
-    }
-    return 0.0;
-  }
-
   Map<String, dynamic> toJson() {
     return {
       'name': name,
       'description': description,
-      'price': price,
-      'category_id': categoryId,
     };
   }
 
-  Product copyWith({
+  Category copyWith({
     int? id,
     String? name,
     String? description,
-    double? price,
-    int? categoryId,
-    Category? category,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
-    return Product(
+    return Category(
       id: id ?? this.id,
       name: name ?? this.name,
       description: description ?? this.description,
-      price: price ?? this.price,
-      categoryId: categoryId ?? this.categoryId,
-      category: category ?? this.category,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is Category &&
+        other.id == id &&
+        other.name == name &&
+        other.description == description &&
+        other.createdAt == createdAt &&
+        other.updatedAt == updatedAt;
+  }
+
+  @override
+  int get hashCode {
+    return id.hashCode ^
+        name.hashCode ^
+        description.hashCode ^
+        createdAt.hashCode ^
+        updatedAt.hashCode;
+  }
+
+  @override
+  String toString() {
+    return 'Category(id: $id, name: $name, description: $description, createdAt: $createdAt, updatedAt: $updatedAt)';
+  }
 }
 
-class CreateProductRequest {
+class CreateCategoryRequest {
   final String name;
   final String? description;
-  final double price;
-  final int categoryId;
 
-  const CreateProductRequest({
+  const CreateCategoryRequest({
     required this.name,
     this.description,
-    required this.price,
-    required this.categoryId,
   });
 
   Map<String, dynamic> toJson() {
     return {
       'name': name,
       'description': description,
-      'price': price,
-      'category_id': categoryId,
     };
   }
 }
 
-class UpdateProductRequest {
+class UpdateCategoryRequest {
   final String? name;
   final String? description;
-  final double? price;
-  final int? categoryId;
 
-  const UpdateProductRequest({
+  const UpdateCategoryRequest({
     this.name,
     this.description,
-    this.price,
-    this.categoryId,
   });
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> json = {};
     if (name != null) json['name'] = name;
     if (description != null) json['description'] = description;
-    if (price != null) json['price'] = price;
-    if (categoryId != null) json['category_id'] = categoryId;
     return json;
   }
 }

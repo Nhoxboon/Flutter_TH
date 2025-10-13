@@ -3,7 +3,9 @@ import 'package:provider/provider.dart';
 import '../core/theme/app_theme.dart';
 import '../data/services/api_service.dart';
 import '../data/repositories/product_repository.dart';
+import '../data/repositories/category_repository.dart';
 import '../presentation/providers/product_provider.dart';
+import '../presentation/providers/category_provider.dart';
 import '../presentation/screens/home/home_screen.dart';
 import '../core/constants/string_constants.dart';
 
@@ -23,9 +25,19 @@ class ProductApp extends StatelessWidget {
             apiService: context.read<ApiService>(),
           ),
         ),
+        Provider<CategoryRepository>(
+          create: (context) => CategoryRepositoryImpl(
+            apiService: context.read<ApiService>(),
+          ),
+        ),
         ChangeNotifierProvider<ProductProvider>(
           create: (context) => ProductProvider(
             repository: context.read<ProductRepository>(),
+          ),
+        ),
+        ChangeNotifierProvider<CategoryProvider>(
+          create: (context) => CategoryProvider(
+            repository: context.read<CategoryRepository>(),
           ),
         ),
       ],

@@ -5,6 +5,7 @@ import '../../widgets/common/product_card.dart';
 import '../../widgets/common/loading_widget.dart';
 import '../../widgets/common/error_widget.dart';
 import '../add_edit_product/add_edit_product_screen.dart';
+import '../category/category_management_screen.dart';
 import '../../../core/constants/string_constants.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -51,6 +52,18 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text(StringConstants.products),
         actions: [
           IconButton(
+            icon: const Icon(Icons.category),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CategoryManagementScreen(),
+                ),
+              );
+            },
+            tooltip: 'Manage Categories',
+          ),
+          IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
               context.read<ProductProvider>().loadProducts(refresh: true);
@@ -79,7 +92,8 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Consumer<ProductProvider>(
               builder: (context, provider, child) {
                 if (provider.state == ProductState.initial ||
-                    (provider.state == ProductState.loading && provider.products.isEmpty)) {
+                    (provider.state == ProductState.loading &&
+                        provider.products.isEmpty)) {
                   return const LoadingWidget();
                 }
 
@@ -105,7 +119,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: ListView.builder(
                     controller: _scrollController,
                     padding: const EdgeInsets.all(16),
-                    itemCount: displayProducts.length + (provider.hasMore && _searchQuery.isEmpty ? 1 : 0),
+                    itemCount: displayProducts.length +
+                        (provider.hasMore && _searchQuery.isEmpty ? 1 : 0),
                     itemBuilder: (context, index) {
                       if (index >= displayProducts.length) {
                         return const Padding(
@@ -160,7 +175,8 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text(StringConstants.deleteProduct),
-          content: Text('${StringConstants.deleteConfirmation}\n"${product.name}"?'),
+          content:
+              Text('${StringConstants.deleteConfirmation}\n"${product.name}"?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
