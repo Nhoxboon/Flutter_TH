@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'screens/game_menu_screen.dart';
+import 'screens/survey_station_screen.dart';
 
 void main() {
   runApp(const MainApp());
@@ -13,7 +14,7 @@ class MainApp extends StatelessWidget {
     return MaterialApp(
       title: 'Balance Ball Game',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: const GameMenuScreen(),
+      home: const SurveyStationScreen(),
       debugShowCheckedModeBanner: false,
     );
   }
